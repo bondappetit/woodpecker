@@ -1,8 +1,8 @@
-const Web3 = require("web3");
-const BN = require("bignumber.js");
+import BN from "bignumber.js";
 import axios, { Method } from "axios";
-import * as dayjs from "dayjs";
-import { createRealAssetDepositaryBalanceViewContract } from "../Web3";
+import Web3 from "web3";
+import { TransactionReceipt } from "web3-core";
+import { Contract } from "web3-eth-contract";
 
 export interface WiseWolvesOptions {
   url: string;
@@ -146,6 +146,12 @@ export interface RealAssetInfo {
   error: string | null;
 }
 
+export interface BlockchainAssetInfo {
+  id: string;
+  amount: number;
+  price: number;
+}
+
 export class WiseWolves {
   private accessToken: string | undefined;
 
@@ -222,36 +228,39 @@ export class WiseWolves {
         currency === "USD" && !this.options.deny.includes(currency)
     );
 
-    return money.reduce((result, { currency, amount, signedData }) => {
-      const updatedAt = parseInt(signedData.data.split("|")[2], 10); // Update timestamp from signed data
-      if (isNaN(updatedAt)) {
+    return money.reduce(
+      (result: RealAssetInfo[], { currency, amount, signedData }) => {
+        const updatedAt = parseInt(signedData.data.split("|")[2], 10); // Update timestamp from signed data
+        if (isNaN(updatedAt)) {
+          return [
+            ...result,
+            {
+              id: currency,
+              amount: new BN(amount).multipliedBy("1000000").toString(), // 6 decimals to USD
+              price: "1",
+              updatedAt: 0,
+              proofData: signedData.data,
+              proofSignature: signedData.signature,
+              error: `Invalid updated at "${signedData.data}"`,
+            },
+          ];
+        }
+
         return [
           ...result,
           {
             id: currency,
             amount: new BN(amount).multipliedBy("1000000").toString(), // 6 decimals to USD
             price: "1",
-            updatedAt: 0,
+            updatedAt,
             proofData: signedData.data,
             proofSignature: signedData.signature,
-            error: `Invalid updated at "${signedData.data}"`,
+            error: null,
           },
         ];
-      }
-
-      return [
-        ...result,
-        {
-          id: currency,
-          amount: new BN(amount).multipliedBy("1000000").toString(), // 6 decimals to USD
-          price: "1",
-          updatedAt,
-          proofData: signedData.data,
-          proofSignature: signedData.signature,
-          error: null,
-        },
-      ];
-    }, []);
+      },
+      []
+    );
   }
 
   getBondAssets(portfolio: Portfolio[]): RealAssetInfo[] {
@@ -264,39 +273,42 @@ export class WiseWolves {
         baseValue > 0
     );
 
-    return bonds.reduce((result, { isin, amount, baseValue, signedData }) => {
-      const updatedAt = parseInt(signedData.data.split("|")[2], 10); // Update timestamp from signed data
-      if (isNaN(updatedAt)) {
+    return bonds.reduce(
+      (result: RealAssetInfo[], { isin, amount, baseValue, signedData }) => {
+        const updatedAt = parseInt(signedData.data.split("|")[2], 10); // Update timestamp from signed data
+        if (isNaN(updatedAt)) {
+          return [
+            ...result,
+            {
+              id: isin,
+              amount: amount.toString(),
+              price: new BN(baseValue).multipliedBy("1000000").toString(), // 6 decimals to USD
+              updatedAt: 0,
+              proofData: signedData.data,
+              proofSignature: signedData.signature,
+              error: `Invalid updated at "${signedData.data}"`,
+            },
+          ];
+        }
+
         return [
           ...result,
           {
             id: isin,
             amount: amount.toString(),
             price: new BN(baseValue).multipliedBy("1000000").toString(), // 6 decimals to USD
-            updatedAt: 0,
+            updatedAt,
             proofData: signedData.data,
             proofSignature: signedData.signature,
-            error: `Invalid updated at "${signedData.data}"`,
+            error: null,
           },
         ];
-      }
-
-      return [
-        ...result,
-        {
-          id: isin,
-          amount: amount.toString(),
-          price: new BN(baseValue).multipliedBy("1000000").toString(), // 6 decimals to USD
-          updatedAt,
-          proofData: signedData.data,
-          proofSignature: signedData.signature,
-          error: null,
-        },
-      ];
-    }, []);
+      },
+      []
+    );
   }
 
-  logTx({ transactionHash, blockNumber, gasUsed }: typeof Web3.Transaction) {
+  logTx({ transactionHash, blockNumber, gasUsed }: TransactionReceipt) {
     console.log(`Transaction: ${transactionHash}
 Block number: ${blockNumber}
 Gas used: ${gasUsed}
@@ -304,8 +316,8 @@ Gas used: ${gasUsed}
   }
 
   async run(
-    web3: typeof Web3,
-    depositary: ReturnType<typeof createRealAssetDepositaryBalanceViewContract>
+    web3: Web3,
+    depositary: Contract
   ) {
     const { login, password, code, client } = this.options;
     const { userKey } = await this.loginstep1(login, password);
@@ -326,7 +338,7 @@ Gas used: ${gasUsed}
       ...this.getMoneyAssets(moneyDetails),
       ...this.getBondAssets(portfolio),
     ];
-    const blockchainAssets = await depositary.methods.assets().call();
+    const blockchainAssets = await depositary.methods.assets().call() as BlockchainAssetInfo[];
     const removeAssets = blockchainAssets.filter(
       ({ id }) => realAssets.find((asset) => asset.id === id) === undefined
     );

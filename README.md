@@ -2,7 +2,7 @@
 
 ## Запуск
 
-Для запуска проекта необходимо добавить файл конфигурации `config.json` в корень и выполнить команду `npm run rac`. При нестандартном пути к файлу конфигурации используется ключ командной строки `--config` (`npm run rac -- --config=path/to/config.json`).
+Для запуска проекта необходимо добавить файл конфигурации `config.json` в корень и выполнить команду `npm run rac`. При нестандартном пути к файлу конфигурации используется ключ командной строки `--config` (`npm run rac -- --config=path/to/config.json`). При нестандарной сети используется ключ командной строки `--network` (`npm run rac -- --network=ropsten`).
 
 ## Конфигурация
 
@@ -17,11 +17,12 @@
   - `password` - пароль для авторизации
   - `code` - код для двуфакторной аутентификации
   - `client` - идентификатор клиента
+  - `deny` - массив идентификаторов исключаемых активов
 
 Конфигурация доступа к блокчейну включает:
 
 - `provider` - URL ноды
-- `depositaryAddress` - адрес депозитария для записи данных
+- `depositary` - адрес или имя депозитария для записи данных
 - `sender` - приватный ключ для подписи всех создаваемых транзакций
 
 Пример конфигурации проекта:
@@ -30,7 +31,7 @@
 {
   "blockchain": {
     "provider": "http://127.0.0.1:8545",
-    "depositaryAddress": "0x388C4bE70EA65E1E8411FEc3dDC090E5c89F6c6D",
+    "depositary": "RealAssetDepositaryBalanceView",
     "sender": "0xcc52931958252d73b48dcaafc47bdb569ea350927a8021052cf9a94fea1d4ca9"
   },
   "portfolio": {
@@ -40,7 +41,8 @@
       "login": "my-login",
       "password": "my-password",
       "code": "123",
-      "client": "CW9ZQ9FE7X38PHAECW9ZQ9FE7X38PHAE"
+      "client": "CW9ZQ9FE7X38PHAECW9ZQ9FE7X38PHAE",
+      "deny": ["EUR", "US77586TAA43"]
     }
   }
 }
