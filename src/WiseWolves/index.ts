@@ -230,17 +230,21 @@ export class WiseWolves {
 
     return money.reduce(
       (result: RealAssetInfo[], { currency, amount, signedData }) => {
+        const info = {
+          id: currency,
+          amount: new BN(amount).multipliedBy("1000000").toFixed(0), // 6 decimals to USD
+          price: "1",
+          updatedAt: 0,
+          proofData: signedData.data,
+          proofSignature: signedData.signature,
+        };
+
         const updatedAt = parseInt(signedData.data.split("|")[2], 10); // Update timestamp from signed data
         if (isNaN(updatedAt)) {
           return [
             ...result,
             {
-              id: currency,
-              amount: new BN(amount).multipliedBy("1000000").toString(), // 6 decimals to USD
-              price: "1",
-              updatedAt: 0,
-              proofData: signedData.data,
-              proofSignature: signedData.signature,
+              ...info,
               error: `Invalid updated at "${signedData.data}"`,
             },
           ];
@@ -249,12 +253,8 @@ export class WiseWolves {
         return [
           ...result,
           {
-            id: currency,
-            amount: new BN(amount).multipliedBy("1000000").toString(), // 6 decimals to USD
-            price: "1",
+            ...info,
             updatedAt,
-            proofData: signedData.data,
-            proofSignature: signedData.signature,
             error: null,
           },
         ];
@@ -274,18 +274,22 @@ export class WiseWolves {
     );
 
     return bonds.reduce(
-      (result: RealAssetInfo[], { isin, amount, baseValue, signedData }) => {
+      (result: RealAssetInfo[], { isin, amount, currentPrice, signedData }) => {
+        const info = {
+          id: isin,
+          amount: amount.toString(),
+          price: new BN(currentPrice).multipliedBy("1000000").toFixed(0), // 6 decimals to USD
+          updatedAt: 0,
+          proofData: signedData.data,
+          proofSignature: signedData.signature,
+        };
+
         const updatedAt = parseInt(signedData.data.split("|")[2], 10); // Update timestamp from signed data
         if (isNaN(updatedAt)) {
           return [
             ...result,
             {
-              id: isin,
-              amount: amount.toString(),
-              price: new BN(baseValue).multipliedBy("1000000").toString(), // 6 decimals to USD
-              updatedAt: 0,
-              proofData: signedData.data,
-              proofSignature: signedData.signature,
+              ...info,
               error: `Invalid updated at "${signedData.data}"`,
             },
           ];
@@ -294,12 +298,8 @@ export class WiseWolves {
         return [
           ...result,
           {
-            id: isin,
-            amount: amount.toString(),
-            price: new BN(baseValue).multipliedBy("1000000").toString(), // 6 decimals to USD
+            ...info,
             updatedAt,
-            proofData: signedData.data,
-            proofSignature: signedData.signature,
             error: null,
           },
         ];
@@ -315,10 +315,7 @@ Gas used: ${gasUsed}
 `);
   }
 
-  async run(
-    web3: Web3,
-    depositary: Contract
-  ) {
+  async run(web3: Web3, depositary: Contract) {
     const { login, password, code, client } = this.options;
     const { userKey } = await this.loginstep1(login, password);
     const { accessToken } = await this.loginstep2(code, userKey);
@@ -338,7 +335,9 @@ Gas used: ${gasUsed}
       ...this.getMoneyAssets(moneyDetails),
       ...this.getBondAssets(portfolio),
     ];
-    const blockchainAssets = await depositary.methods.assets().call() as BlockchainAssetInfo[];
+    const blockchainAssets = (await depositary.methods
+      .assets()
+      .call()) as BlockchainAssetInfo[];
     const removeAssets = blockchainAssets.filter(
       ({ id }) => realAssets.find((asset) => asset.id === id) === undefined
     );
