@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@bondappetit/networks": "^2.0.1",
+    "@bondappetit/networks": "2.0.1-bsc",
     "axios": "^0.21.0",
     "bignumber.js": "^9.0.1",
     "dayjs": "^1.10.4",
