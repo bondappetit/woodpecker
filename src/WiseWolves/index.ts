@@ -274,11 +274,14 @@ export class WiseWolves {
     );
 
     return bonds.reduce(
-      (result: RealAssetInfo[], { isin, amount, currentPrice, signedData }) => {
+      (
+        result: RealAssetInfo[],
+        { isin, amount, purchasePrice, signedData }
+      ) => {
         const info = {
           id: isin,
           amount: amount.toString(),
-          price: new BN(currentPrice).multipliedBy("1000000").toFixed(0), // 6 decimals to USD
+          price: new BN(purchasePrice).multipliedBy("1000000").toFixed(0), // 6 decimals to USD
           updatedAt: 0,
           proofData: signedData.data,
           proofSignature: signedData.signature,
