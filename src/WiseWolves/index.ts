@@ -360,7 +360,7 @@ Gas used: ${gasUsed}
       console.log(`Remove asset ${id}`);
       const tx = await depositary.methods
         .remove(id)
-        .send({ from: web3.eth.defaultAccount, gas: 6000000 });
+        .send({ from: web3.eth.defaultAccount });
       this.logTx(tx);
     }, Promise.resolve());
     await realAssets.reduce(
@@ -380,7 +380,7 @@ proofData: ${proofData}
 proofSignature: ${proofSignature}`);
         const tx = await depositary.methods
           .put(id, amount, price, updatedAt, proofData, proofSignature)
-          .send({ from: web3.eth.defaultAccount, gas: 6000000 });
+          .send({ from: web3.eth.defaultAccount });
         this.logTx(tx);
       },
       Promise.resolve()
