@@ -4,6 +4,9 @@ import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
 
+const sleep = (timeout: number) =>
+  new Promise((resolve) => setTimeout(resolve, timeout));
+
 export interface WiseWolvesOptions {
   url: string;
   login: string;
@@ -365,6 +368,7 @@ Gas used: ${gasUsed}
         .remove(id)
         .send({ from: web3.eth.defaultAccount, gas });
       this.logTx(tx);
+      await sleep(15000);
     }, Promise.resolve());
     await realAssets.reduce(
       async (
@@ -388,6 +392,7 @@ proofSignature: ${proofSignature}`);
           .put(id, amount, price, updatedAt, proofData, proofSignature)
           .send({ from: web3.eth.defaultAccount, gas });
         this.logTx(tx);
+        await sleep(15000);
       },
       Promise.resolve()
     );
