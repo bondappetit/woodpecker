@@ -225,15 +225,24 @@ export class WiseWolves {
   getMoneyAssets(moneyList: MoneyAmount[]): RealAssetInfo[] {
     const money = moneyList.filter(
       ({ currency }) =>
-        currency === "USD" && !this.options.deny.includes(currency)
+        ["USD", "EUR"].includes(currency) &&
+        !this.options.deny.includes(currency)
     );
+    const getCurrencyPrice = (currency: string) => {
+      if (currency === "USD") return "1";
+      else if (currency === "EUR") return "1.18583";
+
+      return "0";
+    };
 
     return money.reduce(
       (result: RealAssetInfo[], { currency, amount, signedData }) => {
         const info = {
           id: currency,
-          amount: new BN(amount).multipliedBy("1000000").toFixed(0), // 6 decimals to USD
-          price: "1",
+          amount: new BN(amount).toFixed(0),
+          price: new BN(getCurrencyPrice(currency))
+            .multipliedBy(1e6)
+            .toFixed(0),
           updatedAt: 0,
           proofData: signedData.data,
           proofSignature: signedData.signature,
