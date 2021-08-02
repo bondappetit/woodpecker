@@ -239,7 +239,7 @@ export class WiseWolves {
       (result: RealAssetInfo[], { currency, amount, signedData }) => {
         const info = {
           id: currency,
-          amount: new BN(amount).toFixed(0),
+          amount: amount >= 0 ? new BN(amount).toFixed(0) : "0",
           price: new BN(getCurrencyPrice(currency))
             .multipliedBy(1e6)
             .toFixed(0),
