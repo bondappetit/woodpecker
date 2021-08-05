@@ -85,6 +85,7 @@ export interface Portfolio {
   currentValue: number;
   profit: number;
   purchasePrice: number;
+  purchaseUnitPrice: number;
   deltaPricePercent: number;
   deltaPriceAbsolute: number;
   couponPaymentYear: number;
@@ -288,12 +289,12 @@ export class WiseWolves {
     return bonds.reduce(
       (
         result: RealAssetInfo[],
-        { isin, amount, purchasePrice, signedData }
+        { isin, amount, purchaseUnitPrice, signedData }
       ) => {
         const info = {
           id: isin,
           amount: amount.toString(),
-          price: new BN(purchasePrice).multipliedBy("1000000").toFixed(0), // 6 decimals to USD
+          price: new BN(purchaseUnitPrice).multipliedBy("1000000").toFixed(0), // 6 decimals to USD
           updatedAt: 0,
           proofData: signedData.data,
           proofSignature: signedData.signature,
