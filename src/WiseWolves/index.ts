@@ -365,9 +365,10 @@ Gas used: ${gasUsed}
       const gas = await depositary.methods
         .remove(id)
         .estimateGas({ from: web3.eth.defaultAccount });
-      const tx = await depositary.methods
-        .remove(id)
-        .send({ from: web3.eth.defaultAccount, gas });
+      const tx = await depositary.methods.remove(id).send({
+        from: web3.eth.defaultAccount,
+        gas: new BN(gas.toString()).multipliedBy(1.1).toFixed(0),
+      });
       this.logTx(tx);
       await sleep(15000);
     }, Promise.resolve());
@@ -391,7 +392,10 @@ proofSignature: ${proofSignature}`);
           .estimateGas({ from: web3.eth.defaultAccount });
         const tx = await depositary.methods
           .put(id, amount, price, updatedAt, proofData, proofSignature)
-          .send({ from: web3.eth.defaultAccount, gas });
+          .send({
+            from: web3.eth.defaultAccount,
+            gas: new BN(gas.toString()).multipliedBy(1.1).toFixed(0),
+          });
         this.logTx(tx);
         await sleep(15000);
       },
