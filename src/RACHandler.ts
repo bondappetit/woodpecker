@@ -1,11 +1,7 @@
 import { resolve } from "path";
 import { pathExists, readFile } from "fs-extra";
 import { parse } from "ts-command-line-args";
-import {
-  isWeb3Config,
-  createWeb3,
-  Network,
-} from "./Web3";
+import { isWeb3Config, createWeb3, Network } from "./Web3";
 import { WiseWolves, isWiseWolvesConfig } from "./WiseWolves";
 
 interface Args {
@@ -42,8 +38,11 @@ function exitError(message: string, code: number = 1) {
     const config = JSON.parse(await readFile(args.config, "utf8"));
     if (isWeb3Config(config.blockchain)) {
       const web3 = createWeb3(config.blockchain);
+      web3.eth.transactionPollingTimeout = 10000;
       const network = new Network(web3, args.network);
-      const depositary = network.createContractById(config.blockchain.depositary);
+      const depositary = network.createContractById(
+        config.blockchain.depositary
+      );
 
       if (isWiseWolvesConfig(config.portfolio)) {
         const gateway = new WiseWolves(config.portfolio.options);
