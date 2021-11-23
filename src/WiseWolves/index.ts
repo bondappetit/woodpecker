@@ -394,7 +394,7 @@ proofSignature: ${proofSignature}`);
           .put(id, amount, price, updatedAt, proofData, proofSignature)
           .send({
             from: web3.eth.defaultAccount,
-            gas: new BN(gas.toString()).multipliedBy(1.3).toFixed(0),
+            gas: new BN(gas.toString()).multipliedBy(1.5).toFixed(0),
           });
         this.logTx(tx);
         await sleep(15000);
