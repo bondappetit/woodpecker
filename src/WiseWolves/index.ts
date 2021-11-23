@@ -390,12 +390,19 @@ proofSignature: ${proofSignature}`);
         const gas = await depositary.methods
           .put(id, amount, price, updatedAt, proofData, proofSignature)
           .estimateGas({ from: web3.eth.defaultAccount });
+
+        console.log(`Estimated gas from node: ${gas}`);
+
+        const gasPrice = new BN(gas.toString()).multipliedBy(1.5).toFixed(0);
+        console.log(`Gas price: ${gasPrice}`);
+
         const tx = await depositary.methods
           .put(id, amount, price, updatedAt, proofData, proofSignature)
           .send({
             from: web3.eth.defaultAccount,
-            gas: new BN(gas.toString()).multipliedBy(1.5).toFixed(0),
+            gas: gasPrice,
           });
+
         this.logTx(tx);
         await sleep(15000);
       },
